@@ -10,6 +10,7 @@ function App() {
   const [showModal, setShowModal] = useState(false);
 
   const [image, setImage] = useState("");
+  const [errorImage, setErrorImage] = useState(null);
   const [cropData, setCropData] = useState("");
   const cropperRef = createRef();
   const handleModal = () => {
@@ -18,7 +19,15 @@ function App() {
 
   const onChange = (e) => {
     e.preventDefault();
+    const allowedTypes = ["image/jpeg", "image/png", "image/gif"];
     let files;
+    if (!allowedTypes.includes(e.target.files[0].type)) {
+      setErrorImage(
+        "Invalid file type. Please select a JPEG, PNG, or GIF image."
+      );
+    } else {
+      setErrorImage(null);
+    }
     if (e.dataTransfer) {
       files = e.dataTransfer.files;
     } else if (e.target) {
@@ -36,6 +45,7 @@ function App() {
       setCropData(cropperRef.current?.cropper.getCroppedCanvas().toDataURL());
     }
     setShowModal(false);
+    setImage("");
   };
   return (
     <>
@@ -59,9 +69,14 @@ function App() {
               <div className="rounded-full w-[100px] h-[100px] bg-yellow-100 overflow-hidden">
                 <div className="h-full w-full img-preview"></div>
               </div>
-              <input type="file" className="mt-1 mb-1" onChange={onChange} />
+              <input
+                type="file"
+                className="mt-1 mb-1 border border-slate-100"
+                onChange={onChange}
+              />
+              <p className="text-red-500">{errorImage}</p>
 
-              {image && (
+              {image && !errorImage && (
                 <Cropper
                   ref={cropperRef}
                   style={{ height: 400, width: "100%" }}
@@ -85,9 +100,15 @@ function App() {
             <Button type="outlineGray" color="error" onClick={handleModal}>
               Cancel
             </Button>
-            <Button type="primary" onClick={getCropData}>
-              Upload
-            </Button>
+            {errorImage ? (
+              <Button type="primary" disabled onClick={getCropData}>
+                Upload
+              </Button>
+            ) : (
+              <Button type="primary" onClick={getCropData}>
+                Upload
+              </Button>
+            )}
           </Modal.Footer>
         </Modal>
       </div>
